@@ -32,3 +32,19 @@ Addresses pointed from PC to memory may or may not be _contiguous_.
 **Instruction Set Architecture**
 
 **Arithmetic/Logic Unit (ALU)**
+
+**Register File** consists of a collection of word-size registers.
+
+Operations on an instruction:
+
+- **load**: byte/word copied register ← main memory
+- **store**: byte/word register → main memory
+- **operate**:
+  - copy contents from _two_ registers to **ALU**
+  - perform arithmetic operation on the two words
+  - store the result in register
+- **jump**:
+  - extract word from the instruction itself
+  - copy word into PC
+
+**Direct Memory Access (DMA)**: data (executable file) travel directly from disk to memory, without passing through processor.
