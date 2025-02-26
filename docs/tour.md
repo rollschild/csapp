@@ -48,3 +48,60 @@ Operations on an instruction:
   - copy word into PC
 
 **Direct Memory Access (DMA)**: data (executable file) travel directly from disk to memory, without passing through processor.
+
+When the program is loaded, its executable gets copied to main memory.
+When program is run by processor, its instructions get copied from memory to processor.
+
+Processor can read from register 100 times faster than memory.
+
+**Cache Memory**
+
+- L1 - nearly as fast as register
+- L2
+  - larger
+  - connected to processor by a special bus
+  - might take 5 times longer to access L2 than L1
+
+L1 and L2 are implemented with **static random access memory (SRAM)**.
+Even L3.
+
+**locality**
+
+Processes run **concurrently**.
+**Concurrent**: instructions of one process are interleaved with those of another process.
+
+**Content Switching**
+
+**kernel**
+
+- manages transition from one process to another
+- _always_ resident in memory
+
+**Threads**
+
+- a process can contain multiple threads
+- each sharing the same context of the process
+- sharing same code and global data
+- typically more efficient than processes
+
+**Virtual Memory**
+
+- **virtual address space**
+- **stack**
+  - at top of user's virtual address space
+  - used by compiler to implement function calls
+- store the contents of a processor's virtual memory on disk and then use memory as a cache for the disk
+
+Each L1 cache is split into 2 parts:
+
+- holds recently fetched instructions
+- holds data
+
+**Hyperthreading**
+
+**Instruction-Level Parallelism**
+
+**Single-Instruction, Multiple-Data (SIMD)**
+
+- allows a single instruction to cause multiple operations to be performed in parallel
+- for processing image/sound/video data
