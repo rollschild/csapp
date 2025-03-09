@@ -38,6 +38,9 @@ void inplace_swap(int* x, int* y) {
   - **logical** - fills the left end with `k` zeros
   - **arithmetic** - fills the left end with `k` repetitions of the most significant bit
     - used by almost _all_ compiler/machine combos for signed data
+- For two's complement, `~x + 1 = -x`
+- Bit pattern of form `[0,...0,1,...1]` with `w - k` zeros followed by `k` ones
+  - can be represented as `(1 << k) - 1`
 
 ## Integer Representations
 
@@ -180,6 +183,81 @@ int tmult_ok(int x, int y) {
   - `(x + (1 << k) - 1) >> k` yields `x / 2^k`
   - adding a **bias**
 - `x / 2^k` === `(x < 0 ? x + (1<<k) - 1 : x) >> k`
+
+## Floating Point
+
+- **IEEE Floating-Point Representation**
+  - $V = (-1)^S × M × 2^E$
+  - `M`: **significand**
+
+### Normalized Value
+
+- most common case
+- `E`
+  - when `exp` is neither all `0`s nor all `1`s
+  - the exponent field interpreted as a _signed_ integer in **biased** form
+  - exponent value, `E`: `E = e - Bias`
+  - `e` has bit representation $e_{k-1},e_{k-2}...e_1,e_0$
+    - here `e` is the actual bits in the bit representation of the value
+  - `Bias` == $2^{k-1} - 1$
+- `frac`, `0 <= f < 1`
+  - binary representation $0.f_{n-1}...f_1f_0$
+  - the actual value it represents: $f / 2^n$, where `n` is number of f bits
+- **significand**: $M = 1 + f$
+  - **implied leading 1**
+  - bit representation: $1.f_{n-1}...f_1f_0$
+  - `1 <= M < 2`
+
+### Denormalized Value
+
+- when exponent all zeros
+- $E = 1 - Bias$
+- $M = f$
+- Two purposes:
+  - represent numeric `0` - sign bit is `0`, exponent field all `0`s, fraction all `0`s
+    - `-0.0` when sign bit is `1` but all others are `0`s
+  - numbers _very_ close to `0.0`
+    - **gradual underflow**
+
+### Special Values
+
+- when exponent all `1`s
+- when fraction field all `0`s:
+  - `+∞` when sign bit `0`
+  - `-∞` when sign bit `1`
+- when fraction _nonzero_: `NaN`
+
+### Rounding
+
+- 4 different rounding modes
+  - round to even (round to closest)
+  - round toward zero
+  - round down
+  - round up
+
+### Floating-Point Operations
+
+- $+∞ - ∞ = NaN$
+- With single-precision,
+  - $1e20 × (1e20 - 1e20) = 0$
+  - $1e20 × 1e20 - 1e20 × 1e20 = NaN$
+
+### Floating Point in C
+
+- use the **round to even (closest)** mode, on machines supporting IEEE
+- In GCC, if:
+  ```c
+  #define _GNU_SOURCE 1
+  #include <math.h>
+  ```
+  - then `INFINITY` is `+∞`
+  - `NAN` is $NaN$
+- when casting:
+  - `double` to `float`: can overflow to `+∞` or `-∞`
+  - `double`/`float` to `int`: round to zero; may overflow
+    - On Intel-compatible arch, bit pattern `[1....0]` ($TMin_w$ for word size `w`)
+    - as **integer indefinite**
+    - `(int)+1e10` yields `-21483648`
 
 ## GCC flags
 
