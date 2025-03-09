@@ -57,6 +57,18 @@ printf("x = %d, y = %lu\n", x, y);
   - `INT_MIN`
   - `UINT_MAX`
 
+### Conversions between Signed and Unsigned
+
+- From Tow's complement to unsigned:
+
+  - $T2U_w(x) = x + 2^w$ if `x < 0`
+  - $T2U_w(x) = x$ if `x >= 0`
+
+- From Unsigned to Two's complement:
+
+  - $U2T_w(u) = u$ if `u <= TMax_w`
+  - $U2T_w(u) = u - 2^w$ if `u > TMax_w`
+
 - when operation between an unsigned and a signed, C implicitly casts the signed argument to _unsigned_
 
   - then assumes both operands are _nonnegative_
@@ -89,6 +101,85 @@ printf("x = %d, y = %lu\n", x, y);
 - relative order from one data size to another:
   - first, change the size
   - then, change the type
+
+## Integer Arithmetics
+
+### Two's-Complement Addition
+
+```markdown
+$x + y = x + y - 2^{w}$ if $2^{w-1} <= x + y$ - positive overflow
+$x + y = x + y$ if $-2^{w-1} <= x + y < 2^{w-1}$
+$x + y = x + y + 2^{w}$ if $x + y < -2^{w-1}$ - negative overflow
+```
+
+- for `x` and `y` in the range `TMin_w <= x, y <= TMax_w`, and `s = x + y`
+  - `s` has positive overflow if and only if `x > 0` and `y > 0` but `s <= 0`
+  - `s` has negative overflow if and only if `x < 0` and `y < 0` but `s >= 0`
+
+### Two's-Complement Negation
+
+- `TMin`'s additive inverse is itself
+  - $TMin_w + TMin_w = -2^{w-1} - 2^{w-1} = -2^w$, which causes negative overflow
+  - hence $TMin_w + TMin_w = -2^w + 2^w = 0$
+- `~x = -x - 1`
+
+### Truncation
+
+- Unsigned:
+  - `x' = x mod 2^k`, where `x'` and `x` are signed equivalent of bit vectors of result and original
+- Two's complement
+  - `x' = U2T_k(x mod 2^k)`, where `x'` and `x` are signed equivalent of bit vectors of result and original
+
+### Unsigned Addition
+
+```markdown
+$x + y = x + y$ if $x + y < 2^{w}$
+$x + y = x + y - 2^{w}$ if $2^{w} <= x + y < 2^{w+1}$
+```
+
+- for `x` and `y` in the range `0 <= x, y <= UMax_w`, and `s = x + y`
+  - `s` has overflow if and only if `s < x` (or `s < y`)
+
+### Unsigned Multiplication
+
+- Truncating an unsigned number to `w` bits is === computing its value modulo $2^w$
+- $x * y = (x⋅y) mod 2^w$
+
+### Two's-Complement Multiplication
+
+- in C, signed multiplication performed by truncating the $2w$-bit product to `w` bits
+  - first, compute its value modulo $2w$
+  - then, convert from unsigned to two's complement
+- $x * y = U2T_w((x⋅y) mod 2^w)$
+  - $U2T_w$: unsigned to two's complement
+
+```c
+/**
+Determine whether two signed arguments can be multiplied without causing overflow
+*/
+int tmult_ok(int x, int y) {
+    int p = x * y;
+    // Either x is zero, or dividing p by x gives y
+    return !x || p/x == y;
+}
+```
+
+### Multiplying by Constants
+
+- Historically, multiplication slower than addition/subtraction/shifting
+- `x * 14`:
+  - `(x << 3) + (x << 2) + (x << 1)`
+  - `(x << 4) - (x << 1)`
+
+### Dividing by Powers of 2
+
+- Integer division is _even slower_ than integer multiplication
+  - 30+ clock cycles!
+- integer division always round toward zero
+- Two's complement division
+  - `(x + (1 << k) - 1) >> k` yields `x / 2^k`
+  - adding a **bias**
+- `x / 2^k` === `(x < 0 ? x + (1<<k) - 1 : x) >> k`
 
 ## GCC flags
 
