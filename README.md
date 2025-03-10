@@ -2,3 +2,4 @@
 
 1. [Tour](docs/tour.md)
 2. [Program Structure and Execution](/docs/program-structure-and-execution.md)
+3. [Machine-Level Representation of Programs](/docs/machine-level-representation-of-programs.md)
