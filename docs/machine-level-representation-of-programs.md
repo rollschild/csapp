@@ -120,4 +120,19 @@ movq (%rsp), %rax
 addq $8, %rsp
 ```
 
+## Arithmetic & Logical Operations
+
+- **Load effective address**
+  - `leaq`
+  - a variant of `movq`
+  - does _NOT_ reference memory at all
+  - copies the effective address of source to destination
+- Shift
+  - `salb`
+  - `salw`
+  - `salq`
+
+### Special Arithmetic Operations
+
+- 16-byte - **oct word** by Intel
 -
