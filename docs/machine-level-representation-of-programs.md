@@ -135,4 +135,26 @@ addq $8, %rsp
 ### Special Arithmetic Operations
 
 - 16-byte - **oct word** by Intel
--
+- `<inttypes.h>`
+  - does _not_ provision 128-bit values
+- GCC has support for 128-bit integers, `__int128`
+- `imulq`/`mulq`
+  - _could_ result in 128-bit value
+  - one arg must be in `%rax`
+  - the other arg is the operand
+  - product stored in:
+    - `%rdx` for the high-order 64 bits
+    - `%rax` for the low-order 64 bits
+- `idivq`/`divq`
+  - `idivq S`/`divq S`
+  - `R[%rdx]:R[%rax] mod S` in `R[%rdx]`
+  - `R[%rdx]:R[%rax] ÷ S` in `R[%rax]`
+- In most applications of 64-bit addition, dividend is given as 64-bit,
+  - should be stored in `%rax`
+  - bits of `%rdx` should be set to:
+    - all zeros (unsigned arithmetic), or
+    - the sign bit of `%rax` - can be performed by `cqto`
+- `cqto` - convert to oct word
+  - reads _NO_ operands
+  - operates on `%rax`
+  - reads sign bit of `%rax` and copies to all `%rdx`
