@@ -127,6 +127,7 @@ addq $8, %rsp
   - a variant of `movq`
   - does _NOT_ reference memory at all
   - copies the effective address of source to destination
+  - e.g. when `x` stored in `%rdi`, `leaq 7(%rdi), %rax` means `temp = x + 7`
 - Shift
   - `salb`
   - `salw`
@@ -158,3 +159,98 @@ addq $8, %rsp
   - reads _NO_ operands
   - operates on `%rax`
   - reads sign bit of `%rax` and copies to all `%rdx`
+
+## Control
+
+- CPU maintains a set of _single-bit_ **condition code** registers
+  - to describe attributes of _most recent_ arithmetic/logical operation
+  - `CF` - carry flag
+    - carry out of most significant bit
+    - detect overflow for _unsigned_ operations
+  - `ZF` - zero flag
+    - most recent operation yielded zero
+  - `SF` - sign flag
+    - most recent operation yielded a negative value
+  - `OF` - overflow flag
+    - most recent operation caused a two's-complement overflow
+    - negative or positive
+- logical ops such as `XOR`
+  - carry & overflow flags set to zero
+- `INC` & `DEC` set overflow & zero flags, but carry flag unchanged
+- Two classes set condition codes without updating any other registers
+  - `CMP`
+    - `cmpb`
+    - `cmpw`
+    - `cmpl`
+    - `cmpq`
+  - `TEST`
+    - `testb`
+    - `testw`
+    - `testl`
+    - `testq`
+
+### Accessing condition codes
+
+- compare two `long`:
+
+  ```assembly
+  ; int comp(data_t a, data_t, b)
+  ; a in %rdi, b in %rsi
+  comp:
+    cmpq    %rsi, %rdi ; compare a:b
+    setl    %al        ; set low-order byte of %eax to 0 or 1
+    movzbl  %al, %eax  ; clear rest of %eax (and rest of %rax)
+    ret
+  ```
+
+- always the form `t = a - b`
+- **exclusive OR** between `SF` and `OF` indicates whether `a < b`/`a > b` while overflow occurs
+  `SF ^ OF`
+
+### jump
+
+```assembly
+movq $0, %rax
+movq (%rax), %rdx ; dereference a NULL pointer
+```
+
+- when generating the object-code file, the assembler determines the addresses of the destination of all labeled instructions
+  - and encodes the **jump targets**
+- **indirect jump**: jump target is read from a register or memory location
+  - using `*`
+  - `jmp *%rax`
+  - `jmp *(%rax)` - reads value from memory (address in `%rax`) as jump target
+- encodings
+  - assembler, then later the linker, generate proper encodings of the jump targets
+  - **PC relative**
+    - encode difference between:
+      - address of target instruction and address of the instructions
+      - address of instruction _immediately following_ the jump
+    - encoded in 1, 2, or 4 bytes
+- PC (program counter) points to the instruction _right after_ the `jmp`, _NOT_ the `jmp` itself
+- `rep; ret` - special thing on AMD to properly handle jumping falling through to `ret`
+- **conditional data transfer** vs. **conditional control transfer**
+  - former can _outperform_ latter
+- processors achieve high performance through **pipelining**
+  - an instruction si processed via a sequence of stages
+- **branch prediction logic**
+  - wrong guess could incur penalty of 15-30 cycles
+  - for some highly random/unpredictable operations like `test x < y`, branch misprediction _dominates_ performance
+- conditional move vs. conditional jump
+- **conditional moves**
+  - `cmov S, R`, etc
+  - source & dest can be 16, 32, or 64 bits long
+  - does _NOT_ always improve efficiency
+  - In GCC, only use conditional moves when the two expressions can be computed very easily
+
+### Loops
+
+#### while loops
+
+- multiple ways to translate `while` loop to machine code
+  - two of which used in GCC
+    - **jump to middle**
+      - with option `-Og`
+    - **guarded do**
+      - with option `-O1`
+-
