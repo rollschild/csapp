@@ -253,4 +253,39 @@ movq (%rax), %rdx ; dereference a NULL pointer
       - with option `-Og`
     - **guarded do**
       - with option `-O1`
+
+#### `for` loops
+
+```c
+long reverse_bits(unsigned long x) {
+    long val = 0;
+    long i;
+
+    for (i = 64; i != 0; i--) {
+      val = (val << 1) | (x & 0x1);
+      x >>= 1;
+    }
+
+    return val;
+}
+```
+
+```assembly
+; x in %rdi
+; uses guarded do
+; compiler skips initial test because i is initially 64 and > 0
+reverse_bits:
+  movl    $64,  %edx
+  movl    $0,   %eax
+.L10:
+  movq    %rdi, %rcx
+  andl    $1,   %ecx
+  addq    $rax, %rax
+  orq     %rcx, %rax
+  shrq    %rdi       ; shift right by 1
+  subq    $1,   %rdx
+  jne     .L10
+  rep; ret
+```
+
 -
