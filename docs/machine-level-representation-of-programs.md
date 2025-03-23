@@ -288,4 +288,114 @@ reverse_bits:
   rep; ret
 ```
 
--
+### `switch` statements
+
+- an efficient implementation using **jump table**
+- **jump table**
+  - an array
+  - where entry `i` is the address of a code segment implementing the action the program should take when switch index equals `i`
+  - used when there are a number of cases spanning a _small_ range of values
+
+```c
+void switch_eg(long x, long n, long *dest) {
+    long val = x;
+    switch(n) {
+      case 100:
+        val *= 13;
+        break;
+      case 102:
+        val += 10;
+        /* fall through */
+      case 103:
+        val += 11;
+        break;
+      case 104:
+      case 106:
+        val *= val;
+        break;
+      default:
+        val = 0;
+    }
+    *dest = val;
+}
+
+void switch_eg_impl(long x, long n, long *dest) {
+    // table of code pointers
+    // each entry is address of a block of code
+    static void *jt[7] = {
+        &&loc_A, &&loc_def, &&loc_B, &&loc_C, &&loc_D, &&loc_def, &&loc_D
+    };
+    unsigned long index = n - 100;
+    long val;
+
+    if (index > 6)
+        goto loc_def;
+    /* multiway branch */
+    goto *jt[index]; // GCC extension
+
+loc_A: /* case 100 */
+    val = x * 13;
+    goto done;
+loc_B: /* case 102 */
+    x = x + 10;
+    /* fall through */
+loc_C: /* case 103 */
+    val = x + 11;
+    goto done;
+loc_D: /* case 104, 106 */
+    val = x * x;
+    goto done;
+loc_def: /* default case */
+    val = 0;
+done:
+    *dest = val;
+}
+```
+
+- the assembly version:
+
+```assembly
+; x in %rdi, n in %rsi, dest in %rdx
+switch_eg:
+  subq    $100,          %rsi    ; index = n - 100
+  cmpq    $6,            %rsi    ; compare index:6
+  ja      .L8                    ; if >, goto loc_def
+  jmp     *.L4(,%rsi,8)          ; goto *jg[index] - indirect jump
+.L3:                             ; loc_A
+  leaq    (%rdi,%rdi,2), %rax    ; 3 * x
+  leaq    (%rdi,%rax,4), %rdi    ; val = x + 3x * 4 = 13 * x
+  jmp     .L2                    ; goto done
+.L5:                             ; loc_B
+  addq    $10,           %rdi    ; x = x + 10
+.L6:
+  addq    $11,           %rdi    ; val = x + 11
+  jmp     .L2
+.L7:
+  imulq   %rdi,          %rdi    ; val = x * x
+  jmp     .L2
+.L8:                             ; loc_def
+  movl    $0,            %edi    ; val = 0
+.L2:
+  movq    %rdi,          (%rdx)  ; *dest = val
+  ret
+```
+
+- the jump table:
+
+  ```assembly
+    .section    .rodata
+    .align      8       ; align address to multiple of 8
+  .L4:
+    .quad       .L3     ; case 100: loc_A
+    .quad       .L8     ; case 101: loc_def
+    .quad       .L5     ; case 102: loc_B
+    .quad       .L6     ; case 103: loc_C
+    .quad       .L7     ; case 104: loc_D
+    .quad       .L8     ; case 105: loc_def
+    .quad       .L7     ; csae 106: loc_D
+  ```
+
+- GCC jump tables - extension to C
+- `&&`: pointer to a code location
+- `jmp *.L4(,%rsi,8)` - indirect jump
+  - operand specifies memory location indexed by register %eax
