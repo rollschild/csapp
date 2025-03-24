@@ -488,7 +488,7 @@ long rfact(long n) {
 }
 ```
 
-```assmebly
+```assembly
 ; long rfact(long n)
 ; n in %rdi
 rfact:
