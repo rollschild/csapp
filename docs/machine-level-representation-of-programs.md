@@ -399,3 +399,108 @@ switch_eg:
 - `&&`: pointer to a code location
 - `jmp *.L4(,%rsi,8)` - indirect jump
   - operand specifies memory location indexed by register %eax
+
+## Procedures
+
+- **passing control**
+- **passing data**
+- **allocating & deallocating memory**
+
+### Run-Time Stack
+
+- x86-64 stack grows towards _lower_ addresses
+- `pushq` & `popq`
+- when an x86-64 procedure requires storage beyond that it can hold in registers,
+  - it allocates space on stack
+- stack frames for _most_ procedures are _fixed size_
+- if/when procedure has 6 or fewer args, all parameters can be passed in registers
+- many functions do _not_ even require a stack frame, when/if:
+  - all local variables can be held in registers, and
+  - function does _not_ call any other functions
+  - a.k.a. **leaf procedure**
+
+### Control Transfer
+
+- P calling Q
+- set program counter (`PC`) to starting address of `Q` code
+- `call Q`
+  - push address `A` onto stack
+  - set PC to the beginning of `Q`
+  - `A` - **return address**
+    - the address of the instruction _immediately following_ the `call`
+- `ret`
+  - pops an address `A` off the stack
+  - sets PC to `A`
+- `call` can be **direct** or **indirect**
+  - `call *Operand` - indirect
+
+### Data Transfer
+
+- with x86-64, most data passing to/from takes place via **registers**
+  - `%rdi`, `%rsi`
+- values returned in `%rax`
+- up to _six_ integral (integer & pointer) arguments can be passed via registers
+  - in the following order:
+    - `%rdi`, `%rsi`, `%rdx`, `%rcx`, `%r8`, `%r9`
+    - `%edi`, `%esi`, `%edx`, `%ecx`, `%r8d`, `%r9d`
+    - `%di`, `%si`, `%dx`, `%cx`, `%r8w`, `%r9w`
+    - `%dil`, `%sil`, `%dl`, `%cl`, `%r8b`, `%r9b`
+- if arguments more than six, others passed on stack
+  - caller must allocate stack frame for args 7 to `n`
+  - arg 7 on top of stack
+  - if passed onto stack, all data sizes rounded up to be multiples of `8`
+
+### Local Storage on Stack
+
+- local data must be stored in memory when/if:
+  - not enough registers to hold all local data
+  - address operator `&` applied to local variable - we must generate an address for it
+  - some local variables are arrays/structures
+- space allocated on stack by decrementing stack pointer `%rsp`
+
+### Local Storage in Registers
+
+- **callee-saved** registers:
+  - `%rbx`, `%rbp`
+  - `%r12` - `%r15`
+  - the callee must _preserve_ the values of these registers
+- To preserve a register value:
+  - not change it at all, or
+  - push the original value on stack, alter it, then pop the old value from stack before returning
+    - creates a portion of stack frame labeled **saved registers**
+    - e.g. `pushq %rbx` & `pushq %rbp`
+- all other registers (except `%rsp`) are **caller-saved** registers
+  - can be modified by any function
+
+### Recursive Procedures
+
+- each procedure call has its own private space on stack
+
+```c
+long rfact(long n) {
+    long result;
+    if (n <= 1) {
+        result = 1;
+    } else {
+        result = n * rfact(n - 1);
+    }
+    return result;
+}
+```
+
+```assmebly
+; long rfact(long n)
+; n in %rdi
+rfact:
+  pushq    %rbx           ; save %rbx
+  movq     %rdi,     %rbx ; store n in callee-saved register
+  movl     $1,       %eax ; set return value = 1
+  cmpq     $1,       %rdi ; compare n:1
+  jle      .L35           ; if <=, goto done
+  leaq     -1(%rdi), %rdi ; compute n - 1
+  call     rfact          ; call rfact(n - 1)
+  imulq    %rbx,     %rax ; multiply result by n
+.L35:                     ; done
+  popq     %rbx           ; restore %rbx
+  ret
+```
