@@ -504,3 +504,35 @@ rfact:
   popq     %rbx           ; restore %rbx
   ret
 ```
+
+## Array Allocation & Access
+
+- `T A[N]`
+  - allocates `L * N` bytes of _contiguous_ memory, where `L` is size of data type `T`
+  - `A` is pointer to beginning of the array
+- `movl (%rdx,%rcx,4), %eax`
+  - to evaluate `E[i]`, where `E` is array of `int`s
+  - `E` stored in `%rdx`
+  - `i` in `%rcx`
+- `A[i]` === `*(A + i)`
+
+### Nested Arrays
+
+- implemented in **row-major** order
+- `T D[R][C]`
+  - `&D[i][j] = x_d + L(C * i + j)`
+  - `x_d` is starting location of `D`
+
+### Fixed-Size Arrays
+
+```c
+// GOOD coding practice!!!
+#define N 16
+typedef int fix_matrix[N][N]
+```
+
+### Variable-Size Arrays
+
+- _Historically_, C only supported multidimensional arrays where sizes (possible exception of the first dimension) could be determined compile time
+- C99 introduced capability of having array dimension expressions that are _computed_ as array being allocated
+-
