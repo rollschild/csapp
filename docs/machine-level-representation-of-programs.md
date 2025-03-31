@@ -694,4 +694,4 @@ struct node_t {
 
 - nowadays frame pointer _only_ used in code where stack frame may be of _variable_ size
 - `(x + 7) >> 3` - round `x` up to the nearest multiple of `8`
-  - see [Dividing by powers of 2](program-structure-and-execution.md/#dividing-by-powers-of-2)
+  - see [Dividing by powers of 2](program-structure-and-execution.md#dividing-by-powers-of-2)
