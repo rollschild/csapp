@@ -174,7 +174,7 @@ int tmult_ok(int x, int y) {
   - `(x << 3) + (x << 2) + (x << 1)`
   - `(x << 4) - (x << 1)`
 
-### Dividing by Powers of 2
+### Dividing by Powers of 2 {#dividing-by-powers-of-2}
 
 - Integer division is _even slower_ than integer multiplication
   - 30+ clock cycles!
