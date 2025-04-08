@@ -58,4 +58,30 @@
     - **register-intensive procedure linkage**
       - **registers** used for procedure args and return addresses
       - _typically_ has (many more) registers - up to 32
--
+
+### Exceptions
+
+- processor has a **status code**, `Stat`
+- `Stat` potential values:
+  - `AOK` - normal
+  - `HLT`
+  - `ADR` - invalid address
+  - `INS` - invalid instruction
+- there is a **max address** limit
+  - access beyond this limit will trigger `ADR`
+- when exception happens, processor invokes **exception handler**
+  - can then invoke user-defined **signal handler**
+- **assembler directives**
+  - words starting with `.`
+  - `.quad`
+  - `.align 8` - align on 8-byte boundary
+  - `.pos` - assembler should generate code starting at position `0`
+- stack grows toward lower addresses
+- `pushq` does two things:
+  - decrements stack pointer by 8
+  - writes a register value to memory
+  - what about `pushq %rsp`? - convention:
+    - push original value of `%rsp` on stack (used by x86-64), or:
+    - push the _decremented_ value of `%rsp` on stack
+- `popq %rsp` sets the stack pointer to the value read from memory
+  - equivalent to `mrmovq (%rsp), %rsp`
