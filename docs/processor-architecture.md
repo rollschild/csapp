@@ -85,3 +85,72 @@
     - push the _decremented_ value of `%rsp` on stack
 - `popq %rsp` sets the stack pointer to the value read from memory
   - equivalent to `mrmovq (%rsp), %rsp`
+
+## Logic Design and Hardware Control Language (HCL)
+
+- logic value `1`: 1.0 volt
+- logic value `0`: around 0.0 volt
+- Three major components:
+  - **combinational logic** - compute
+  - **memory elements** - store
+  - **clock signals** - control/regulate
+
+### Logic Gates
+
+- `&&`, `||`, `!`
+
+### Combinational Circuits and HCL Boolean Expressions
+
+- Restrictions:
+  - every logic gate input must be connected to _exactly one_ of:
+    - one of system inputs (**primary input**)
+    - output connection of some memory element
+    - output of some logic gate
+  - outputs of _two or more_ logic gates _CANNOT_ be connected together
+  - network must be **acyclic**
+- HCL
+  - `bool eq = (a && b) || (!a && !b)` - equals `1` when:
+    - both `a` and `b` are `0`, _or_
+    - both `a` and `b` are `1`
+- **multiplexor**, a.k.a. **MUX**
+
+### Word-Level Combinational Circuits and HCL Integer Expressions
+
+- a word multiplexor's HCL:
+  ```hcl
+  word Out = [
+      s: A;
+      1: B; # default
+  ];
+  ```
+- A general form of HCL **case expression**:
+  ```hcl
+  [
+      select_1 : expr_1;
+      select_2 : expr_2;
+      .
+      .
+      .
+      select_k : expr_k;
+  ]
+  ```
+- **Arithmetic/Logical Unit (ALU)**
+  - one important combinational circuit
+
+### Set Membership
+
+- general form `iexpr in { iexpr_1, iexpr_2, ..., iexpr_4 }`
+
+### Memory and Clocking
+
+- combinational circuits do _NOT_ store any information
+- **sequential circuits** - systems that have state and perform on that state
+- Two classes of memory devices:
+  - **clocked registers**
+    - clock signal controls the loading of the register with the value at its input
+  - **Random Access Memories** - store multiple words
+    - virtual memory
+    - the **register file**
+- **Hardware registers** serve as **barriers** between combinational logic in different parts of the circuit
+  - values _only_ propagate from a register input to its output once every clock cycle at the _rising_ clock edge
+-
