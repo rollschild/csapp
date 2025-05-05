@@ -265,3 +265,41 @@ word new_pc = [
     1 : valP;
 ]
 ```
+
+## General Principles of Pipelining
+
+- increases **throughput** of system
+- _may slightly_ increase latency
+- **throughput**: number of customers served per unit time
+- **latency**: time required to service an individual customer
+
+### Computational Pipelines
+
+- circuit delays measured in units of **picoseconds** (ps)
+  - 10^-12 seconds
+- throughput in giga-instructions per second (GIPS)
+
+### Detailed Look at Pipeline Operation
+
+- the transfer of instructions between pipeline stages is controlled by a clock signal
+  - signal rising from 0 to 1 initiates the next set of pipeline stage evaluations
+
+### Limitations
+
+- **nonuniform partitioning**
+- modern processors employ _very deep_ pipelines (15+ stages) attempting to max clock rate
+
+### Pipelining a system with feedback
+
+- **data dependency**
+
+### Pipelined Y86-64 Implementations
+
+- the PC update stage comes at the beginning of the clock cycle, _not_ at the end
+- **SEQ+**
+  - create state registers to hold signals computed during an instruction
+  - then as a new clock cycle begins, the values propagate through the exact same logic to compute PC for the now-current instruction
+  - `pIcode`?
+- **circuit retiming**
+  - changes state representation for a system without changing its logical behavior
+-
