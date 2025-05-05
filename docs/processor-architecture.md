@@ -1,4 +1,4 @@
-# Processor Architecture
+# Processor Architecture (WIP, unfinished)
 
 - **Instruction Set Architecture (ISA)**
   - **sequential** instruction execution
