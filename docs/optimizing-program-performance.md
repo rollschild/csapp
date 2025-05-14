@@ -52,3 +52,83 @@
       }
   }
   ```
+
+## Eliminating Loop Inefficiencies
+
+- in `for` loop, the test condition must be evaluated on _every_ iteration
+  - **code motion** - a general class of optimizations
+
+## Reducing Procedure Calls
+
+- procedure calls can incur overhead & also block most forms of program optimization
+
+## Eliminating Unneeded Memory References
+
+- pay attention to **aliasing**
+
+## Understanding Modern Processors
+
+- **instruction-level parallelism**
+- **latency bound**
+- **throughput bound**
+
+### Overall Operation
+
+- **superscalar** processors
+  - can perform _multiple_ operations on _every_ clock cycle,
+  - **out of order**: order in which instructions execute need _not_ correspond to their ordering in the machine-level program
+- Overall design of a processor:
+  - **ICU (instruction control unit)**
+    - read a sequence of instructions _from memory_
+    - generate (from these) a set of primitive ops to perform on program data
+  - **EU (execution unit)**: execute these ops
+- **out of order** processors better at achieving higher degrees of instruction-level parallelism
+- ICU reads instructions from **instruction cache**
+  - special high speed memory
+  - contains most recently accessed instructions
+- **branch prediction**
+  - _guess_ whether a branch will be taken
+  - _predict_ the target address for the branch
+  - **misprediction** incurs _significant cost_ in perf
+- **speculative execution**
+  - process begins fetching & decoding instructions at where it predicts the branch will go
+  - even _begins executing_ these ops _before_ it has been determined whether the branch prediction is correct or not
+- **micro-operations**
+  - decoded from instruction decoding logic
+- on x86-64, instruction involving one/more memory references yields multiple ops
+  - `addq %rax, 8(%rdx)`
+  - separating memory references from arithmetic ops
+- EU receives several ops on each clock cycle
+  - ops dispatched to a set of **functional units**
+    - specialized hardware
+- **data cache**
+  - high speed memory
+  - contains most recently accessed data values
+- **retirement unit**
+  - keeps track of ongoing processing
+  - makes sure it obeys sequential semantics of the machine-level program
+  - controls updating of the registers
+    - integer
+    - floating point
+    - SSE
+    - AVX
+  - _only_ updates program registers when instructions are being retired
+    - happens only after processor certain that any branches leading to this instruction have been correctly predicted
+- **register renaming**
+  - most common mechanism for controlling comm of operands among the execution units
+- the registers are updated _only after_ the processor is certain of the branch outcomes
+- a typical floating-point adder contains 3 stages:
+  - process the exponent values
+  - add the fractions
+  - round the result
+- functional units with issue times of 1 cycle are **fully pipelined**
+  - **issue time**: min number of clock cycles between two independent ops of the same type
+  - can start a new operation every clock cycle
+- Divider is _NOT_ **pipelined**
+
+## Loop Unrolling
+
+- Reduce number of iterations
+  - by increasing number of elements computed on each iteration
+- easily performed by compiler
+- GCC will perform some forms of loop unrolling with `-O3` or higher
