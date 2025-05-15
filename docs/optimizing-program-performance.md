@@ -132,3 +132,50 @@
   - by increasing number of elements computed on each iteration
 - easily performed by compiler
 - GCC will perform some forms of loop unrolling with `-O3` or higher
+
+## Enhancing Parallelism
+
+```c
+// 2x2 loop unrolling
+// by maintaining multiple accumulators, this approach makes better use
+// of the multiple functional units and their pipelining capabilities
+void combine(vec_ptr v, data_t *dest) {
+    long i;
+    long len = vec_length(v);
+    long limit = len - 1;
+    data_t *data = get_vec_start(v);
+    data_t acc0 = IDENT;
+    data_t acc1 = IDENT;
+
+    // combine 2 elements at a time
+    for (i = 0; i < limit; i += 2) {
+        acc0 = acco0 OP data[i];
+        acc1 = acco1 OP data[i+1];
+    }
+
+    // finish any remaining elements
+    for (; i < len; i++) {
+        acc0 = acc0 OP data[i];
+    }
+
+    *dest = acc0 OP acc1;
+}
+```
+
+- **k x k loop unrolling**
+- **reassociation transformation**
+  - can reduce number of operations along the **critical path** in a computation
+  - better performance by better utilizing the multiple functional units and their pipelining capabilities
+  - _most_ compilers will _not_ attempt any reassociations of floating point ops
+    - these ops not guaranteed to be associative
+- **SSE**: streaming SIMD extensions
+- **AVX**: advanced vector extensions
+- SIMD
+  - operates on entire vectors of data within single instructions
+  - the vectors are held in special set of **vector registers**
+    - `%ymm0` - `%ymm15`
+  - current AVX vector registers are 32 bytes long
+    - can hold 8 32-bit numbers or 4 64-bit numbers
+    - either integer or floating-point
+  - AVX instructions can perform vector ops on these registers, in parallel
+-
