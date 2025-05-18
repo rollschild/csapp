@@ -280,3 +280,18 @@ void combine(vec_ptr v, data_t *dest) {
     - sets address field for that entry
   - `s_data` sets data field for the entry
   - two ops above are performed _independently_
+
+## Performance Improvement Techniques
+
+- Eliminate excessive function calls
+- Move computations out of loops when possible
+- Consider selective compromises of program modularity to gain greater efficiency
+- Eliminate unnecessary memory references
+  - introduce temp variables to hold intermediate results
+  - store a result in an array or global variable _only when_ the final value has been computed
+- _Unroll_ loops to reduce overhead and to enable further optimizations
+- find ways to increase instruction-level parallelism by techniques such as:
+  - multiple accumulators
+  - reassociation
+- Rewrite conditional ops in a functional style to enable compilation via **conditional data transfers**
+-
