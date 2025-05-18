@@ -178,4 +178,105 @@ void combine(vec_ptr v, data_t *dest) {
     - can hold 8 32-bit numbers or 4 64-bit numbers
     - either integer or floating-point
   - AVX instructions can perform vector ops on these registers, in parallel
--
+
+## Limiting Factors
+
+- Assume a program requires total of `N` computations of some operation, that the microprocessor has `C` functional units capable of performing the op and these units have an **issue time** of `I`
+  - program will require _at least_ $N * I / C$ cycles to execute
+
+### Register Spilling
+
+- If a program has a degree of parallelism `P` that _exceeds_ number of available registers
+  - compiler will resort to **spilling**
+  - storing some temp values in memory, by allocating space on run-time stack
+- modern x86-64 processors have 16 integer registers
+  - can make use of the 16 YMM registers to store floating-point
+
+### Branch Prediction and Misprediction Penalties
+
+- **speculative execution**
+- **conditional moves**
+- Write code suitable with conditional moves
+- branch prediction is only reliable for regular patterns
+- performance: **conditional data transfer** >>> **conditional control transfer**
+- GCC is able to generate conditional moves for code written in a more **functional** style
+  - where, we use conditional ops to compute values, and
+  - update the program state with these values
+  - as opposed to a more **imperative** style, where we use conditionals to _selectively_ update program state
+- A _more efficient_ (in terms of compiler code generation) merge sort:
+
+  ```c
+  void merge_sort(long src1[], long src2[], long dest[], long n) {
+      long i1 = 0;
+      long i2 = 0;
+      long id = 0;
+
+      while (i1 < n && i2 < n) {
+          long v1 = src1[i1];
+          long v2 = src2[i2];
+          long take1 = v1 < v2;
+          dest[id++] = take1 ? v1 : v2;
+          i1 += take1;
+          i2 += (1 - take1);
+      }
+  }
+  ```
+
+## Understanding Memory Performance
+
+- modern processors have dedicated functional units to perform load/store ops
+  - these units have internal buffers to hold sets of outstanding requests for memory ops
+
+### Load Performance
+
+- example of getting length of a linked list:
+
+  ```c
+  typedef struct ELE {
+      struct ELE* next;
+      long data;
+  } list_ele, *list_ptr;
+
+  long list_len(list_ptr ls) {
+      long len = 0;
+      while (ls) {
+          len++;
+          ls = ls->next;
+      }
+      return len;
+  }
+  ```
+
+  ```asm
+  ; inner loop of list_len
+  ; ls in %rdi, len in %rax
+  .L3:
+    addq    $1, %rax     ; increment len
+    movq    (%rdi), %rdi ; ls = ls->next
+    testq   %rdi, %rdi   ; test ls
+    jne     .L3
+  ```
+
+- the `movq` instruction is a _critical_ bottleneck
+
+### Store Performance
+
+- most cases the store op can operate in a fully pipelined mode
+- **write/read dependency**
+  - outcome of a memory read depends on a recent memory write
+- store unit includes a **store buffer**
+  - containing addresses & data of the store ops that:
+    - have been issued to the store unit
+    - but not yet been completed
+    - completion involves updating data cache
+- when a load op,
+  - must check the entries in the store buffer for matching addresses
+  - if a match found,
+    - bytes being written to the address also being read
+    - it retrieves the data entry as the result of the load op
+- `movq %rax, (%rsi)` is translated into 2 ops:
+  - `s_addr` computes address for the store op
+    - creates entry in the store buffer
+    - sets address field for that entry
+  - `s_data` sets data field for the entry
+  - two ops above are performed _independently_
