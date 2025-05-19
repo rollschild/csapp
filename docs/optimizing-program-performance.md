@@ -294,4 +294,16 @@ void combine(vec_ptr v, data_t *dest) {
   - multiple accumulators
   - reassociation
 - Rewrite conditional ops in a functional style to enable compilation via **conditional data transfers**
+
+## Identifying & Eliminating Performance Bottlenecks
+
+- **program profiling**
+- `gprof` - provided by unix
+  - compile code in GCC with `-pg` flag
+    - along with `-Og` to ensure compiler does not attempt to perform any optimizations via inline substitution
+    - `gcc -Og -pg prog.c prog`
+  - output: `gmon.out`
+  - analyze the data in `gmon.out`: `gprof prog`
+- `gprof`'s timing is _not_ very precise
+  - for programs running for less than 1 mins - `gprof` provides only a rough estimate
 -

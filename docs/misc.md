@@ -12,3 +12,5 @@
     - higher level, more optimization, better performance
 - `-S` - to see the assembly code
 - `-c` - both compile and assemble the code
+- `-pg` - enable profiling
+-
