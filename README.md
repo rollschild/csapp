@@ -5,3 +5,4 @@
 3. [Machine-Level Representation of Programs](/docs/machine-level-representation-of-programs.md)
 4. [Processor Architecture](/docs/processor-architecture.md)
 5. [Optimizing Program Performance](/docs/optimizing-program-performance.md)
+6. [Memory Hierarchy](/docs/memory-hierarchy.md)
