@@ -20,3 +20,23 @@
 - **VRAM**
   - allows concurrent reads & writes to the memory
 - Nonvolatile Memory
+
+### Disk
+
+- takes _million times_ longer than reading from SRAM
+- Logical Disk Blocks
+  - **disk controller**
+
+## Locality
+
+- Reference data items that:
+  - are near other recently referenced data items, or
+  - were recently referenced themselves
+- Two distinct forms:
+  - **temporal locality**
+  - **spatial locality**
+- **cache memory**
+
+## The Memory Hierarchy
+
+-
