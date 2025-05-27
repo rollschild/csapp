@@ -99,4 +99,67 @@
   - **UNDEF** - undefined symbols
   - **COMMON** - uninitialized data objects that are not yet allocated
 - the GNU `readelf` program
+
+## Symbol Resolution
+
+- by associating each reference with exactly one symbol definition from the symbol tables of its input relocatable object files
+- compiler ensures static local variables, which get local linker symbols, have unique names
+- multiple object modules might define global symbols with the same name
+- in C++ overloaded functions work because:
+  - compiler encodes each unique method and parameter list combo into a unique name for the linker
+  - **mangling** & **demangling**
+  - class mangling:
+    - number of characters in class's name +
+    - class original name
+  - method is encoded as:
+    - original method name +
+    - `__` +
+    - mangled class name +
+    - single letter encodings of each arg
+  - `Foo::bar(int, long)` encoded as `bar__3Fooil`
+
+### How Linkers Resolve Duplicate Symbol Names, on Linux Systems
+
+- at compile time, compiler exports each global symbol to the assembler as either:
+  - **strong**
+  - **weak**
+- assembler encodes this info implicitly in in the symbol table of the relocatable object file
+- functions & initialized global variables get **strong** symbols
+- uninitialized global variables get **weak** symbols
+- Linkers used following rules:
+  - multiple strong symbols with the same name are _NOT_ allowed
+  - given a strong symbol and multiple weak symbols with the same name, choose the strong symbol
+  - given multiple weak symbols with the same name, choose _any_ of the weak symbols
+- try to invoke linker with flag such as GCC `-fno-common`
+  - or `-Werror`
+
+### Linking with Static Libraries
+
+- **static library**
+- on Linux, stored on disk in **archive** format
+- `.a` suffix
+- To create a static lib of some functions, use `ar`:
+
+  ```console
+  gcc -c lib1.c lib2.c
+  ar rcs libsomething.a lib1.o lib2.o
+  ```
+
+- To use the lib,
+
+  ```console
+  gcc -c main.c
+  gcc -static -o out main.o ./libsomething.a
+  # gcc -static -o out main.o -L. -lsomething
+  ```
+
+### How Linkers Use Static Libraries to resolve references
+
+- Linkers maintain three sets when going through files & archives in CLI from left to right:
+  - `E` - relocatable object files
+  - `U` - unresolved symbols
+  - `D` - symbols that have been defined in previous input files
+- the order of libs and object files on the command line _MATTERS_
+- General rule:
+  - place libraries at the _END_ of the command line
 -
