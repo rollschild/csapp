@@ -162,4 +162,44 @@
 - the order of libs and object files on the command line _MATTERS_
 - General rule:
   - place libraries at the _END_ of the command line
+
+## Relocation
+
+- **relocation**: linker merges input modules and assigns run-time addresses to each symbol
+- at this point, linker knows the exact sizes of the code & data sections in its input object modules
+- Two steps:
+  1. **Relocating sections and symbol definitions**
+  2. **Relocating symbol references within sections**
+
+### Relocation Entries
+
+- whenever assembler encounters a reference to an object whose ultimate location is unknown,
+  - it generates a **relocation entry**
+  - telling linker how to modify the reference when it merges the object file into an executable
+  - placed in `.rel.text` and `.rel.data` for code and data, respectively
+- ELF relocation entry
+
+  ```c
+  typedef struct {
+      long offset;    /* offset of the reference to relocate */
+      long type:32,   /* relocation type */
+           symbol:32; /* symbol table index */
+      logn addend;    /* constant part of relocation expression */
+  } Elf64_Rela;
+  ```
+
+- ELF defines 32 relocation types:
+  - `R_X86_64_PC32`
+  - `R_X86_64_32` - relocate a reference that uses a 32-bit _absolute_ address
+- x86-64 **small code model**
+  - assumes total size of code + data in the executable file is smaller than 2 GB
+  - thus can be accessed at run-time using 32-bit PC-relative addresses
+  - default for GCC
+  - programs larger than 2 GB can be compiled using:
+    - `-mcmodel=medium` (medium code model)
+    - `-mcmodel=large` (large code model)
+
+### Relocating Symbol References
+
+- `objdump -dx main.o`
 -
