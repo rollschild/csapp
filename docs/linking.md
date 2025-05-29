@@ -202,4 +202,14 @@
 ### Relocating Symbol References
 
 - `objdump -dx main.o`
--
+
+## Executable Object Files
+
+- **ELF header** includes **entry point**
+- `.init` section defines a small function called `_init`, which
+  - will be called by program's initialization code
+- no `.rel` sections - executable is _fully linked_
+- for any segment `s`, linker must choose a starting address `vaddr`, such that
+  - `vaddr mod align = off mod align`
+  - `off` is the offset of the segment's first section in the object file
+  - `align` is the alignment specified in the program header
