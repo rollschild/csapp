@@ -213,3 +213,29 @@
   - `vaddr mod align = off mod align`
   - `off` is the offset of the segment's first section in the object file
   - `align` is the alignment specified in the program header
+
+## Loading Executable Object Files
+
+- **loader**
+  - copies code & data in the executable object file from disk into memory - **loading**
+  - run the program by jumping to its first instruction (**entry point**)
+- Linux can invoke the loader by `execve`
+- _Every_ linux program has a run-time memory image
+  - code segment starts at address `0x400000`
+  - followed by data segment
+  - followed by run-time **heap**
+    - grows _upwards_
+  - largest legal user address: `2^48 - 1`
+  - stack grows downwards
+  - region above `2^48` - reserved for code/data in **kernel**
+- Loader copies chunks of executable object file into the code & data segments
+- Loader jumps to program's entry point
+  - always the address of `_start` function
+  - defined in the system object file `crt1.o` - same for all C programs
+  - `_start` calls the **system startup function**, `__libc_start_main`
+    - defined in `libc.so`
+    - initializes the execution environment
+    - calls the user-level `main` function
+    - handles its return value
+    - (if necessary, returns control to kernel)
+-
