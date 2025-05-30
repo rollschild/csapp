@@ -238,4 +238,63 @@
     - calls the user-level `main` function
     - handles its return value
     - (if necessary, returns control to kernel)
--
+
+## Dynamic Linking with Shared Libraries
+
+- **shared library**
+  - a.k.a. **shared object**
+  - with `.so` suffix on linux
+  - `.dll` on windows
+  - object module that,
+  - at _either_ run time or load time, can be loaded at an _arbitrary_ memory address and linked with a program in memory
+  - **dynamic linking**
+  - performed by **dynamic linker**
+- a single copy of the `.text` section of a shared lib in memory can be shared by different running processes
+- To build a shared lib:
+  - `gcc -shared -fpic -o libshared.so libshared1.c libshared2.c`
+  - `-fpic`: directs compiler to generate **position-independent code**
+- To link a shared lib:
+  - `gcc -o prog main.c ./libshared.so`
+  - _none_ of the code/data sections from `libshared.so` are actually copied into the executable `prog`
+  - instead, linker copies some relocation & symbol table info that will allow references to code/data in `libshared.so` to be resolved at load time
+- when loader loads/runs executable `prog`,
+  - it loads _partially linked_ `prog`
+  - then checks the `.interp` section in `prog`
+    - contains path name of the dynamic linker
+    - `ld-linux.so`
+  - passes control to dynamic linker
+- Dynamic linker then:
+  - relocates text/data of `libc.so` into some memory seg
+  - relocates text/data of `libshared.so` into another memory
+  - relocates any references in `prog` to symbols defined by `libc.so` and `libshared.so`
+  - passes control to the app
+    - locations of the shared libs are _fixed_ and do _NOT_ change during execution of the program
+
+## Loading and Linking Shared Libs from Applications
+
+- functions:
+  - `void *dlopen(const char* filename, int flag);`
+  - `void *dlsym(void *handle, char *symbol);`
+  - `int dlclose(void *handle);`
+  - `const char *dlerror(void);`
+- To compile,
+  - `gcc -rdynamic -o prog dll.c -ldl`
+
+## Position-Independent Code (PIC)
+
+- code that can be loaded without any relocations
+- `-fpic`
+- **Global Offset Table (GOT)**
+  - created by compiler at the beginning of the data segment
+  - contains 8-byte entry for each global data object (procedure _or_ global variable) referenced by object module
+  - also generates relocation record for each entry in GOT
+- **lazy binding**
+  - defers the binding of each procedure address until the _first time_ the procedure is called
+  - between GOT and **PLT** (procedure linkage table)
+  - GOT part of data segment
+  - PLT part of code segment
+- PLT - an array of 16-byte code entries
+  - `PLT[0]` special entry that jumps into the dynamic linker
+  - each shared lib function called by the executable has its own PLT entry
+  - each of these entries is responsible for invoking a specific function
+  - `PLT[1]` - invokes system startup function `__libc_start_main`
