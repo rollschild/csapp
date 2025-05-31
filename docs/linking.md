@@ -298,3 +298,151 @@
   - each shared lib function called by the executable has its own PLT entry
   - each of these entries is responsible for invoking a specific function
   - `PLT[1]` - invokes system startup function `__libc_start_main`
+
+## Library Interpositioning
+
+- allows you to:
+  - intercept calls to shared lib functions
+  - and execute your own code _instead_
+- users can:
+  - trace number of times a lib func is called
+  - can validate and trace its input and output
+- Basic idea:
+  - given a target func to be interposed on
+  - create a wrapper function whose prototype is _identical_ to the target func
+  - trick the system into calling the wrapper func instead
+- **interpositioning** can occur:
+  - compile time
+  - link time
+  - run time
+
+### Compile Time Interpositioning
+
+```c
+// int.c
+#include <malloc.h>
+
+int main() {
+    // ...
+    int *p = malloc(32);
+    free(p);
+}
+
+// malloc.h
+#define malloc(size) mymalloc(size)
+#define free(ptr) myfree(ptr)
+
+void *mymalloc(size_t size);
+void myfree(void *ptr);
+```
+
+- `gcc -DCOMPILETIME -c mymalloc.c`
+- `gcc -I. -o intc int.c mymalloc.o`
+- **interpositioning** happens because of `-I.` arg
+  - tells C preprocessor to look for `malloc.h` in the current directory _before_ looking in the usual system dirs
+
+### Link-Time Interpositioning
+
+- Linux **static linker** supports link-time interpositioning with `--wrap f` flag
+- `--wrap f` tells linker to
+  - resolve references to symbol `f` as `__wrap_f`
+  - resolve references to symbol `__real_f` as `f`
+
+```c
+// mymalloc.c
+#ifdef LINKTIME
+#include <stdio.h>
+
+void *__real_malloc(size_t size);
+void __real_free(void *ptr);
+
+// malloc wrapper function
+void *__wrap_malloc(size_t size) {
+    void *ptr = __real_malloc(size); // call libc mallc
+    printf("malloc(%d) = %p\n", (int)size, ptr);
+    return ptr;
+}
+
+// free wrapper function
+void __wrap_free(void *ptr) {
+    __real_free(ptr); // call libc free
+    printf("free(%p)\n", ptr);
+}
+
+#endif
+```
+
+- `gcc -DLINKTIME -c mymalloc.c`
+- `gcc -c int.c`
+- `gcc -Wl,--wrap,malloc -Wl,--wrap,free -o intl int.o mymalloc.o`
+  - `-Wl,option` flag: passes `option` to linker
+  - each comma is `option` is replaced with space
+  - above passes following to linker:
+    - `--wrap malloc`
+    - `--wrap free`
+
+### Run-Time Interpositioning
+
+- requires access _only_ to the executable object file
+- based on dynamic linker's `LD_PRELOAD` env variable
+  - if it's set to list of share lib pathnames, separated by colons/spaces
+  - dynamic linker (`ld-linux.so`) will search `LD_PRELOAD` libs _first_
+
+```c
+#ifdef RUNTIME
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <dlfcn.h>
+
+// malloc wrapper function
+void *malloc(size_t size) {
+    void *(*mallocp)(size_t size);
+    char *error;
+
+    mallocp = dlsym(RTLD_NEXT, "malloc"); // get address of libc malloc
+    if((error = dlerror()) != NULL) {
+        fputs(error, stderr);
+        exit(1);
+    }
+    char *ptr = mallocp(size); // call libc malloc
+    printf("malloc(%d) = %p\n", (int)size, ptr);
+    return ptr;
+}
+
+// free wrapper function
+void free(void *ptr) {
+    void (*freep)(void *) = NULL;
+    char *error;
+
+    if(!ptr) return;
+
+    freep = dlsym(RTLD_NEXT, "free"); // get address of libc free
+    if((error = dlerror()) != NULL) {
+        fputs(error, stderr);
+        exit(1);
+    }
+    free(ptr); // call libc free
+    printf("free(%p)\n", ptr);
+}
+#endif
+```
+
+- to build the shared lib that contains the wrapper functions:
+  - `gcc -DRUNTIME -shared -fpic -o mymalloc.so mymalloc.c -ldl`
+- compile the main program:
+  - `gcc -o intr int.c`
+- run the program in bash:
+  - `LD_PRELOAD="./mymalloc.so" ./intr`
+
+## Tools
+
+- GNU `binutils`
+- `ar`
+- `strings`
+- `strip`
+- `nm`
+- `size`
+- `readelf`
+- `objdump`
+- `ldd` from Linux

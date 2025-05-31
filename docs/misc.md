@@ -13,4 +13,6 @@
 - `-S` - to see the assembly code
 - `-c` - both compile and assemble the code
 - `-pg` - enable profiling
--
+- `-I.`
+  - tells C preprocessor to look for headers in the current directory _before_ looking in the usual system dirs
+  - for **interpositioning**
