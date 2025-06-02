@@ -7,3 +7,4 @@
 5. [Optimizing Program Performance](/docs/optimizing-program-performance.md)
 6. [Memory Hierarchy](/docs/memory-hierarchy.md)
 7. [Linking](/docs/linking.md)
+8. [Exceptional Control Flow](/docs/exceptional-control-flow.md)
