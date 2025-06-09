@@ -654,4 +654,79 @@ int main(int argc, char **argv) {
     pause();
     sigprocmask(SIG_SETMASK, &prev, NULL);
     ```
--
+
+## Nonlocal Jumps
+
+- **nonlocal jump**: user-level control flow provided by C
+  - transfers control directly from one function to another currently executing function without having to go through the normal call-and-return sequence
+  - `setjmp`
+    - `int setjmp(jmp_buf env);`
+      - save the current **calling environment** in the `env` buffer
+      - for later use by `longjmp`
+      - calling env:
+        - program counter
+        - stack pointer
+        - general purpose registers
+      - value returned from `setjmp` should _NOT_ be assigned to a variable
+    - `int sigsetjmp(sigjmp_buf env, int savesigs);`
+  - `longjmp`
+    - `void longjmp(jmp_buf env, int retval);`
+      - restores calling env from the `env` buffer
+      - then triggers a return from the most recent `setjmp`
+      - `setjmp` then returns with nonzero return value `retval`
+    - `void siglongjmp(sigjmp_buf env, int retval);`
+- `setjmp` called once but returns _multiple times_
+  - once when `setjmp` first called and calling env stored in `env` buffer
+    - 0
+  - once for each corresponding `longjmp` call
+    - non-zero
+- `longjmp`
+  - called once but _NEVER_ returns
+- Usage
+  - permit an immediate return from a deeply nested function call
+    - usually as result of some error detected
+  - branch out of a signal handler to a specific code location,
+    - rather than returning to the instruction that was interrupted by the arrival of a signal
+
+```c
+/**
+ * Do a soft restart whenever user types Ctrl+C on keyboard
+ */
+#include "stdio.h"
+#include <sys/wait.h>
+#include <errno.h>
+
+sigjmp_buf buf;
+
+void handler(int sig) {
+    // instead of returning from signal handler, which would pass control back
+    // to the interrupted processing loop,
+    // perform a nonlocal jump back to the beginning of the `main` program
+    siglongjmp(buf, 1);
+}
+
+int main() {
+    if (!sigsetjmp(buf, 1)) { // save calling env and signal context
+        Signal(SIGINT, handler);
+        Sio_puts("starting\n");
+    } else {
+        Sio_puts("restarting\n");
+    }
+
+    while (1) {
+        Sleep(1);
+        Sio_puts("processing...\n");
+    }
+
+    exit(0); // control never reaches here...
+}
+```
+
+## Tools for Manipulating Processes
+
+- `strace`
+  - compile the code with with `-static` to get a cleaner trace
+- `ps`
+- `top`
+- `pmap`
+- `/proc`
