@@ -59,4 +59,26 @@
 
 - OS provides a _separate_ page table
   - separate virtual address space for each process
--
+
+## Address Translation
+
+### Multi-Level Page Tables
+
+- hierarchy of page tables
+
+## Intel Core i7/Linux Memory System
+
+- each process has its own private page table hierarchy
+- when a linux process running, the page tables associated with allocated pages are all memory-resident
+
+### Linux Virtual Memory System
+
+- **areas** (**segments**)
+  - contiguous chunk of existing (allocated) virtual memory whose pages are related in some way
+- `task_struct`
+  - a distinct data structure maintained by kernel
+  - for each process in system
+- `pgd`
+  - page global directory
+  - stored in CR3 control register?
+- `mmap` - points to `vm_area_structs`
