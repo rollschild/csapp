@@ -82,3 +82,65 @@
   - page global directory
   - stored in CR3 control register?
 - `mmap` - points to `vm_area_structs`
+
+## Memory Mapping
+
+- **memory mapping**
+  - linux initializes contents of a virtual memory area by associating it with an **object** on disk
+  - areas can be mapped to one of 2 types of objects:
+    - regular file in Linux file system
+    - anonymous file
+      - containing binary zeros
+      - **demand-zero pages**
+- **swap file**
+  - created by kernel
+  - bounds the total amount of virtual pages that can be allocated by currently running processes
+
+### Shared Objects
+
+- **copy-on-write**
+  - how private objects are mapped into virtual memory
+  - protection fault triggered
+  - fault handler
+    - creates new copy of the page in physical memory
+    - updates page table entry to point to the new copy
+    - then restores write permissions to the page
+
+### `fork`
+
+- kernel creates various data structures for the new process and assigns it a new PID
+- To create virtual memory for the new process:
+  - creates exact copies of current process's:
+    - `mm_struct`
+    - area structs
+    - page tables
+  - flags each page in both processes as read-only
+  - flags each area struct in both processes as private copy-on-write
+
+### `execve`
+
+- Steps to load & run `a.out`:
+
+  1. delete existing user areas (of the current process)
+  2. map private areas
+  3. map shared areas
+  4. set program counter (PC)
+
+### User-Level Memory Mapping with `mmap`
+
+- `mmap`: used by linux processes to create new areas of virtual memory and to map objects into these areas
+- `void *mmap(void *start, size_t length, int prot, int flags, int fd, off_t offset)`;
+- asks kernel to:
+  - create new virtual memory area
+    - _preferably_ starting at address `start`
+  - map a contiguous chunk of object specified by file descriptor `fd` to the new area
+    - with `length` bytes
+    - starts at offset of `offset` bytes from beginning of the file
+  - `start` is just a hint - usually `NULL`
+  - `prot`: bits describing access permissions of the newly mapped virtual memory area
+    - `PROT_EXEC`
+    - `PROT_READ`
+    - `PROT_WRITE`
+    - `PROT_NONE`
+- `int munmap(void *start, size_t length);`
+  - delete the area
