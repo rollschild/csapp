@@ -144,3 +144,63 @@
     - `PROT_NONE`
 - `int munmap(void *start, size_t length);`
   - delete the area
+
+## Dynamic Memory Allocation
+
+- `brk` - variable maintained by kernel that points to top of **heap**
+- Two types:
+  - **explicit**
+    - `malloc` & `free`
+  - **implicit**
+    - garbage collectors
+
+### `malloc` & `free`
+
+- `void *malloc(size_t size);`
+  - returns pointer to block of memory of _at least_ `size` bytes
+  - suitably aligned for _any_ kind of data object that might be in the block
+  - when `gcc -m32`, addresses being multiples of 8
+  - when `gcc -m64`, addresses being multiples of 16
+- sets `errno` if error
+- `calloc`
+- `realloc`
+- `void *sbrk(intptr_t incr);`
+  - grows/shrinks heap by adding `incr` to kernel's `brk` pointer
+  - `errno`: `ENOMEM`
+- `void free(void *ptr);`
+  - `ptr` must point to block allocated by:
+    - `malloc`
+    - `calloc`
+    - `realloc`
+
+### Fragmentation
+
+- causes poor heap utilization
+- Two forms:
+  - **internal fragmentation**
+    - allocated block larger than payload
+      - alignment reasons
+  - **external fragmentation**
+    - when there _is_ enough aggregate free memory
+    - but no single free block large enough
+
+### Implicit Free Lists
+
+- **implicit free list**
+
+### Placing Allocated Blocks
+
+- **placement policy**
+  - **first fit**
+  - **next fit**
+    - proposed by Donald Knuth???
+    - can run significantly faster than first fit
+    - worse memory utilization
+  - **best fit**
+
+### Coalescing Free Blocks
+
+- **false fragmentation**
+- **coalescing**
+  - immediate or deferred
+- **boundary tags**
