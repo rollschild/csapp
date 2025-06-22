@@ -62,6 +62,8 @@
 
 ## Address Translation
 
+- small cache of PTEs in MMU called **translation lookaside buffer (TLB)**
+
 ### Multi-Level Page Tables
 
 - hierarchy of page tables
@@ -247,3 +249,31 @@
 - **mark phase**
 - **sweep phase**
 - C does _NOT_ tag memory locations with type information
+
+## Common Memory-Related Bugs in C Programs
+
+### dereferencing bad pointers
+
+- `scanf("%d", &val);`
+  - _NOT_ `scanf("%d", val);`
+
+### Reading Uninitialized Memory
+
+- heap memory is _NOT_ guaranteed to be initialized to zero!
+  - use `calloc`
+
+### Allowing Stack Buffer Overflows
+
+- `gets`
+
+### Assuming Pointers and the Objects They Point to Are the Same Size
+
+### Off-by-One
+
+### Referencing a Pointer instead of Object It Points To
+
+### Misunderstanding Pointer Arithmetic
+
+### Referencing Nonexistent Variables
+
+### Memory Leaks
