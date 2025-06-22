@@ -224,3 +224,26 @@
   - fast & memory efficient
 - **buddy system**
   - fast searching & coalescing
+
+## Garbage Collection
+
+- McCarthy - **mark & sweep**
+
+### Basics
+
+- memory as a directed **reachability graph**
+- **root nodes** & **heap nodes**
+- **heap nodes**
+  - each heap node corresponds to an allocated block in heap
+- **root nodes**
+  - locations _not_ in heap but point to heap
+  - registers
+  - variables on stack
+  - global variables in read/write area of virtual memory
+- **conservative garbage collector**
+
+### Mark & Sweep Garbage Collectors
+
+- **mark phase**
+- **sweep phase**
+- C does _NOT_ tag memory locations with type information
