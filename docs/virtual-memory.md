@@ -204,3 +204,23 @@
 - **coalescing**
   - immediate or deferred
 - **boundary tags**
+
+### Explicit Free Lists
+
+- heap can be organized as a **doubly-linked free list**
+  - a `pred` and `succ` pointer in _each_ free block
+  - in the previously payload section
+
+### Segregated Free Lists
+
+- **segregated storage**
+  - for reducing allocation time
+- maintain _multiple_ free lists
+  - where each list holds blocks that are _roughly same_ size
+- **size classes**
+- **simple segregated storage**
+- **segregated fits**
+  - used by GNU `malloc`
+  - fast & memory efficient
+- **buddy system**
+  - fast searching & coalescing
