@@ -33,3 +33,53 @@
 - each process has `umask`
 - `int open(char *filename, int flags, mode_t mode);`
   - access permission bits of the file: `mode & ~umask`
+
+## Reading File Metadata
+
+- `int stat(const char *filename, struct stat *buf);`
+- `int fstat(int fd, struct stat *buf);`
+
+## Reading Directory Contents
+
+- `DIR *opendir(const char *name);`
+- `struct dirent *readdir(DIR *dirp);`
+- `int closedir(DIR *dirp);`
+
+## Sharing Files
+
+- **descriptor table**
+- **file table**
+- **v-node table**
+- after `fork`, child has its own _duplicate_ copy of the parent's descriptor table
+  - parent & child share the same set of open file tables and thus share the same file position
+
+## I/O Redirection
+
+- `int dup2(int oldfd, int newfd);`
+  - copies descriptor table entry `oldfd` to descriptor table entry `newfd`
+  - overwriting previous contents of descriptor table entry `newfd`
+  - if `newfd` already open, `dup2` _closes_ `newfd` before copying `oldfd`
+
+## Standard I/O
+
+- standard I/O lib models an open file as **stream**
+- a stream of type `FILE` is an abstraction for a file descriptor and a **stream buffer**
+
+## Considerations
+
+- standard I/O streams are **full duplex**
+  - programs can perform input & output on the _same_ stream
+- RESTRICTIONS:
+  - input functions following output functions
+    - an input function cannot follow an output function without an intervening call to:
+      - `fflush`
+      - `fseek`
+      - `fsetpos`
+      - `rewind`
+  - output functions following input functions
+    - an output function cannot follow an input function without intervening call to:
+      - `fseek`
+      - `fsetpos`
+      - `rewind`
+    - unless the input function encounters EOF
+-
