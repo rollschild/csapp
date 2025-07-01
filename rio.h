@@ -1,11 +1,11 @@
 #ifndef INCLUDED_RIO_H
 #define INCLUDED_RIO_H
 
-#define MAXLINE 4096
+#define MAXLINE 8192
 #define RIO_BUFSIZE 8192
 
-#include "stdio.h"
 #include <stddef.h>
+#include <stdio.h>
 #include <sys/types.h>
 
 typedef struct {
