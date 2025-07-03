@@ -11,3 +11,4 @@
 9. [Virtual Memory](/docs/virtual-memory.md)
 10. [System-Level I/O](/docs/system-level-io.md)
 11. [Network Programming](/docs/network-programming.md)
+12. [Concurrent Programming](/docs/concurrent-programming.md)
