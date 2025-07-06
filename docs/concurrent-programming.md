@@ -78,4 +78,27 @@
 
   - initialize state associated with a thread routine
 
--
+## Shared Variables in Threaded Programs
+
+- registers are _NEVER_ shared
+- virtual memory is _ALWAYS_ shared
+- thread stacks are _usually_ accessed independently by their respective threads
+  - but _NOT_ always
+- different thread stacks are _NOT_ protected from other threads
+
+### Mapping Variables to Memory
+
+- global variables
+  - at run time, exactly one instance of each global variable
+  - can be referenced by _any_ thread
+- local automatic variables
+  - declared inside a function without `static` attribute
+  - at run time, each thread's stack contains its own instances of any local automatic
+  - true even if multiple threads execute the same thread routine
+- local static variables
+  - declared inside a function with `static`
+  - the read/write area of virtual memory contains exactly one instance of each
+- **shared variable**
+  - _if and only if_ one of its instances is referenced by more than one thread
+
+## Synchronizing Threads with Semaphores
