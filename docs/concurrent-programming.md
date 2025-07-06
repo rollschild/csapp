@@ -102,3 +102,82 @@
   - _if and only if_ one of its instances is referenced by more than one thread
 
 ## Synchronizing Threads with Semaphores
+
+- **semaphore**
+  - global variable with a non-negative integer value
+  - can only be manipulated by 2 special ops:
+    - `P(s)`
+      - if `s` is nonzero, `P` decreases `s` and returns immediately
+      - if `s` is zero, then suspend the thread until `s` becomes nonzero and thread is restarted by `V` op
+      - after restarting, `P` decrements `s` and returns control to caller
+    - `V(s)`
+      - increments `s` by `1`
+      - if any threads blocked at `P` op waiting for `s` to become nonzero, then `V` op restarts _exactly one of_ these threads
+        - which then completes its `P` op by decrementing `s`
+- **semaphore invariant**
+  - a running program can _never_ enter a state where a properly initialized semaphore has a negative value
+- **binary semaphore**
+  - associate a semaphore `s`, initially `1`, with each shared variable (or related set of shared variables) and then surround the corresponding critical section with `P(s)` and `V(s)` ops
+  - **mutex**
+  - `P(s)` - **lock** a mutex
+  - `V(s)` - **unlock** a mutex
+
+### Using Semaphores to Schedule Shared Resources
+
+- **producer-consumer** & **readers-writers**
+
+#### Producer-Consumer Problem
+
+- a **bounded buffer** shared by a producer and a consumer thread
+
+#### Readers-Writers Problem
+
+#### Readers-Writers Problem
+
+```c
+/**
+Favors readers over writers
+*/
+// global variables
+int readcnt; // number of readers currently in the critical section
+// both below initially = 1
+sem_t mutex;
+// controls access to the critical sections that access the shared object
+sem_t w;
+
+void reader(void) {
+    // as long as a single reader holds the w mutex, an unbounded number of
+    // readers can enter the critical section unimpeded
+    while (1) {
+        P(&mutex); // protects access to readcnt
+        readcnt++;
+        if (readcnt == 1) { /* first in */
+            // only the first reader to enter critical section locks w
+            P(&w);
+        }
+        V(&mutex);
+
+        /* critical section */
+        /* reading happens */
+
+        P(&mutex);
+        readcnt--;
+        if (readcnt == 0) { /* last out */
+            // only the last reader to leave critical section unlocks w
+            V(&w);
+        }
+        V(&mutex);
+    }
+}
+
+void writer(void) {
+    while (1) {
+        P(&w);
+
+        /* critical section */
+        /* writing happens */
+
+        V(&w);
+    }
+}
+```
