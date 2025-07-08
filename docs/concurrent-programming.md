@@ -181,3 +181,33 @@ void writer(void) {
     }
 }
 ```
+
+## Using Threads for Parallelism
+
+- **Synchronization overhead is expensive and should be avoided if possible**
+- **If cannot be avoided, overhead should be amortized by as much useful computation as possible**
+
+## Other Concurrency Issues
+
+- Classes of thread-unsafe functions:
+  - functions that do _not_ protect shared variables
+  - functions that keep state across multiple invocations
+    - the only way to make it thread-safe is to rewrite it into a **reentrant** function
+  - functions that return a pointer to a static variable
+    - use **lock-and-copy** method
+  - functions that call thread-unsafe functions
+
+### Reentrancy
+
+- **reentrant functions**
+  - do _not_ reference _any_ shared data when they are called by multiple threads
+- Linux provides reentrant versions of most thread-unsafe functions
+  - functions ending with `_r` suffix
+
+### Deadlocks
+
+- when binary semaphores are used for mutual exclusion, apply the rule to prevent deadlocks:
+- **Mutex lock ordering rule**:
+  - **Given a total ordering of all mutexes, a program is deadlock-free if:**
+    - **each thread acquires its mutexes in order**, and
+    - **releases them in _reverse_ order**
